@@ -1,0 +1,273 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Birthday Countdown</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            color: #fff;
+            font-family: Arial, Helvetica, sans-serif;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+        }
+
+        .small-title {
+            font-size: 14px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: #aaa;
+            margin-bottom: 18px;
+        }
+
+        h1 {
+            font-size: clamp(36px, 8vw, 80px);
+            font-weight: 700;
+            letter-spacing: -3px;
+            line-height: 1;
+            margin-bottom: 15px;
+        }
+
+        .date {
+            font-size: clamp(16px, 3vw, 22px);
+            color: #aaa;
+            margin-bottom: 50px;
+        }
+
+        .countdown {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .box {
+            border: 1px solid #333;
+            background: #0a0a0a;
+            padding: 30px 15px;
+            border-radius: 14px;
+            transition: 0.3s ease;
+        }
+
+        .box:hover {
+            border-color: #fff;
+            transform: translateY(-4px);
+        }
+
+        .number {
+            display: block;
+            font-size: clamp(35px, 7vw, 65px);
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .label {
+            color: #888;
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .message {
+            display: none;
+            margin-top: 35px;
+            font-size: clamp(25px, 5vw, 45px);
+            font-weight: 700;
+        }
+
+        .footer {
+            margin-top: 50px;
+            color: #555;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        /* Tablet */
+        @media (max-width: 650px) {
+            .countdown {
+                gap: 10px;
+            }
+
+            .box {
+                padding: 22px 8px;
+            }
+
+            .date {
+                margin-bottom: 35px;
+            }
+
+            .footer {
+                margin-top: 35px;
+            }
+        }
+
+        /* Mobile */
+        @media (max-width: 430px) {
+            body {
+                padding: 15px;
+            }
+
+            h1 {
+                letter-spacing: -1px;
+            }
+
+            .small-title {
+                font-size: 11px;
+                letter-spacing: 3px;
+            }
+
+            .countdown {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .box {
+                padding: 25px 10px;
+            }
+
+            .number {
+                font-size: 42px;
+            }
+
+            .label {
+                font-size: 10px;
+            }
+
+            .date {
+                margin-bottom: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="container">
+
+        <div class="small-title">
+            The countdown begins
+        </div>
+
+        <h1>Birthday Countdown</h1>
+
+        <div class="date">
+            October 14, 2026
+        </div>
+
+        <section class="countdown">
+
+            <div class="box">
+                <span class="number" id="days">00</span>
+                <span class="label">Days</span>
+            </div>
+
+            <div class="box">
+                <span class="number" id="hours">00</span>
+                <span class="label">Hours</span>
+            </div>
+
+            <div class="box">
+                <span class="number" id="minutes">00</span>
+                <span class="label">Minutes</span>
+            </div>
+
+            <div class="box">
+                <span class="number" id="seconds">00</span>
+                <span class="label">Seconds</span>
+            </div>
+
+        </section>
+
+        <div class="message" id="birthdayMessage">
+            Happy Birthday! 🎂
+        </div>
+
+        <div class="footer">
+            OCTOBER 14 • 2026
+        </div>
+
+    </main>
+
+    <script>
+        // Birthday date
+        const birthday = new Date("October 14, 2026 00:00:00").getTime();
+
+        function updateCountdown() {
+
+            const now = new Date().getTime();
+            const difference = birthday - now;
+
+            // Birthday has arrived
+            if (difference <= 0) {
+
+                document.getElementById("days").textContent = "00";
+                document.getElementById("hours").textContent = "00";
+                document.getElementById("minutes").textContent = "00";
+                document.getElementById("seconds").textContent = "00";
+
+                document.querySelector(".countdown").style.display = "none";
+                document.getElementById("birthdayMessage").style.display = "block";
+
+                return;
+            }
+
+            // Calculate time
+            const days = Math.floor(
+                difference / (1000 * 60 * 60 * 24)
+            );
+
+            const hours = Math.floor(
+                (difference / (1000 * 60 * 60)) % 24
+            );
+
+            const minutes = Math.floor(
+                (difference / (1000 * 60)) % 60
+            );
+
+            const seconds = Math.floor(
+                (difference / 1000) % 60
+            );
+
+            // Display countdown
+            document.getElementById("days").textContent =
+                String(days).padStart(2, "0");
+
+            document.getElementById("hours").textContent =
+                String(hours).padStart(2, "0");
+
+            document.getElementById("minutes").textContent =
+                String(minutes).padStart(2, "0");
+
+            document.getElementById("seconds").textContent =
+                String(seconds).padStart(2, "0");
+        }
+
+        // Update immediately
+        updateCountdown();
+
+        // Update every second
+        setInterval(updateCountdown, 1000);
+    </script>
+
+</body>
+</html>
