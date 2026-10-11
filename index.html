@@ -1,18 +1,12 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Birthday Countdown</title>
-
+    <title>Birthday Countdown → Celebration</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        /* ===== COUNTDOWN PAGE STYLES ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             min-height: 100vh;
@@ -25,249 +19,743 @@
             padding: 20px;
             overflow-x: hidden;
         }
+        body.locked { overflow: hidden; }
 
-        .container {
+        .container { width: 100%; max-width: 900px; text-align: center; }
+        .small-title { font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: #aaa; margin-bottom: 18px; }
+        h1 { font-size: clamp(36px, 8vw, 80px); font-weight: 700; letter-spacing: -3px; line-height: 1; margin-bottom: 15px; }
+        .date { font-size: clamp(16px, 3vw, 22px); color: #aaa; margin-bottom: 50px; }
+        .countdown { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .box { border: 1px solid #333; background: #0a0a0a; padding: 30px 15px; border-radius: 14px; transition: 0.3s ease; }
+        .box:hover { border-color: #fff; transform: translateY(-4px); }
+        .number { display: block; font-size: clamp(35px, 7vw, 65px); font-weight: 700; line-height: 1; margin-bottom: 10px; }
+        .label { color: #888; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; }
+        .message { display: none; margin-top: 35px; font-size: clamp(25px, 5vw, 45px); font-weight: 700; }
+        .footer { margin-top: 50px; color: #555; font-size: 12px; letter-spacing: 1px; }
+
+        @media (max-width: 650px) {
+            .countdown { gap: 10px; }
+            .box { padding: 22px 8px; }
+            .date { margin-bottom: 35px; }
+            .footer { margin-top: 35px; }
+        }
+        @media (max-width: 430px) {
+            body { padding: 15px; }
+            h1 { letter-spacing: -1px; }
+            .small-title { font-size: 11px; letter-spacing: 3px; }
+            .countdown { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .box { padding: 25px 10px; }
+            .number { font-size: 42px; }
+            .label { font-size: 10px; }
+            .date { margin-bottom: 30px; }
+        }
+
+        /* ===== BIRTHDAY PAGE STYLES ===== */
+        .birthday-page-root {
+            --black: #000;
+            --white: #fff;
+            --secondary: #bdbdbd;
+            --muted: #858585;
+            --border: #2a2a2a;
+            --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+            --sans: Inter, "Helvetica Neue", Arial, sans-serif;
+            font-family: var(--sans);
+            background: var(--black);
+            color: var(--white);
+            scroll-behavior: smooth;
+            scroll-padding-top: 24px;
+            min-width: 320px;
+            margin: 0;
+            overflow-x: hidden;
+            position: relative;
             width: 100%;
-            max-width: 900px;
+        }
+        .birthday-page-root *, .birthday-page-root *::before, .birthday-page-root *::after { box-sizing: border-box; }
+        .birthday-page-root a { color: inherit; text-decoration: none; }
+        .birthday-page-root button { color: inherit; font: inherit; }
+        .birthday-page-root button:focus-visible, .birthday-page-root a:focus-visible { outline: 2px solid var(--white); outline-offset: 5px; }
+        .birthday-page-root ::selection { background: #fff; color: #000; }
+
+        .birthday-page-root .opening {
+            position: fixed;
+            z-index: 20;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+            padding: 32px 24px;
+            background: #000;
+            text-align: center;
+            transition: opacity .85s ease, visibility .85s ease;
+        }
+        .birthday-page-root .opening::before,
+        .birthday-page-root .opening::after {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: min(75vw, 680px);
+            aspect-ratio: 1;
+            border: 1px solid #181818;
+            border-radius: 50%;
+            content: "";
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+        }
+        .birthday-page-root .opening::after { width: min(58vw, 520px); border-color: #111; }
+        .birthday-page-root .opening-inner { position: relative; z-index: 1; }
+        .birthday-page-root .opening-kicker,
+        .birthday-page-root .eyebrow {
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .2em;
+            line-height: 1.6;
+            text-transform: uppercase;
+        }
+        .birthday-page-root .opening-kicker { margin: 0 0 22px; }
+        .birthday-page-root .opening h1,
+        .birthday-page-root .section-title,
+        .birthday-page-root .final-title {
+            font-family: var(--serif);
+            font-weight: 400;
+            letter-spacing: -.055em;
+        }
+        .birthday-page-root .opening h1 { margin: 0; font-size: clamp(54px, 10vw, 112px); line-height: .99; }
+        .birthday-page-root .opening-subtitle {
+            margin: 22px 0 32px;
+            color: var(--secondary);
+            font-family: var(--serif);
+            font-size: clamp(16px, 2.2vw, 21px);
+            font-style: italic;
+        }
+        .birthday-page-root .open-button {
+            min-width: 124px;
+            min-height: 46px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 17px;
+            padding: 0 20px;
+            border: 1px solid #707070;
+            background: transparent;
+            cursor: pointer;
+            font-size: 11px;
+            letter-spacing: .08em;
+            transition: background .25s ease, color .25s ease, border-color .25s ease, transform .25s ease;
+        }
+        .birthday-page-root .open-button:hover { transform: translateY(-2px); border-color: #fff; background: #fff; color: #000; }
+        .birthday-page-root .open-button span { font-size: 16px; transition: transform .25s ease; }
+        .birthday-page-root .open-button:hover span { transform: translateX(4px); }
+        .birthday-page-root .opening-note { margin: 50px 0 0; color: #666; font-size: 9px; letter-spacing: .13em; text-transform: uppercase; }
+
+        .birthday-page-root.entered .opening { visibility: hidden; opacity: 0; pointer-events: none; }
+        .birthday-page-root .site-content { opacity: 0; transition: opacity .9s ease .2s; }
+        .birthday-page-root.entered .site-content { opacity: 1; }
+
+        .birthday-page-root .site-header {
+            position: absolute;
+            z-index: 2;
+            top: 0; right: 6vw; left: 6vw;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+        .birthday-page-root .wordmark { font-size: 10px; font-weight: 650; letter-spacing: .16em; }
+        .birthday-page-root .header-detail { color: var(--muted); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
+        .birthday-page-root .intro {
+            position: relative;
+            min-height: 100svh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 115px 14vw 105px;
+            overflow: hidden;
+        }
+        .birthday-page-root .intro::after {
+            position: absolute;
+            right: 13%; bottom: 17%;
+            width: 1px; height: 100px;
+            background: linear-gradient(to bottom, transparent, #555, transparent);
+            content: "";
+        }
+        .birthday-page-root .intro .eyebrow { margin-bottom: 20px; }
+        .birthday-page-root .section-title { margin: 0; font-size: clamp(48px, 8vw, 92px); line-height: 1.02; }
+        .birthday-page-root .section-title em, .birthday-page-root .final-title em { color: #bdbdbd; font-weight: 400; }
+        .birthday-page-root .intro-copy {
+            max-width: 570px;
+            margin: 28px 0 0;
+            color: var(--secondary);
+            font-size: clamp(14px, 1.5vw, 17px);
+            line-height: 1.9;
+        }
+        .birthday-page-root .intro-copy strong { color: #fff; font-weight: 500; }
+        .birthday-page-root .scroll-cue {
+            position: absolute;
+            bottom: 34px; left: 14vw;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--muted);
+            font-size: 9px;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+        }
+        .birthday-page-root .scroll-cue span { color: #fff; font-size: 15px; animation: nudge 1.8s ease-in-out infinite; }
+
+        .birthday-page-root .letter-section { padding: 125px 24px; background: #080808; }
+        .birthday-page-root .letter-card {
+            position: relative;
+            width: min(100%, 790px);
+            margin: 0 auto;
+            padding: clamp(34px, 7vw, 76px);
+            border: 1px solid var(--border);
+            background: #0b0b0b;
+        }
+        .birthday-page-root .letter-card::before {
+            position: absolute;
+            top: -1px; left: clamp(34px, 7vw, 76px);
+            width: 52px; height: 1px;
+            background: #fff;
+            content: "";
+        }
+        .birthday-page-root .letter-card .eyebrow { margin-bottom: 22px; }
+        .birthday-page-root .letter-card .section-title { margin-bottom: 38px; font-size: clamp(44px, 6.5vw, 70px); }
+        .birthday-page-root .letter-copy { max-width: 620px; color: #c5c5c5; font-size: 15px; line-height: 2; }
+        .birthday-page-root .letter-copy p { margin: 0 0 21px; }
+        .birthday-page-root .letter-copy p:last-child { margin-bottom: 0; }
+        .birthday-page-root .letter-copy strong { color: #fff; font-weight: 500; }
+        .birthday-page-root .letter-signoff { margin: 43px 0 0; color: #fff; font-family: var(--serif); font-size: 20px; font-style: italic; }
+        .birthday-page-root .letter-signoff span { display: block; margin-top: 11px; color: var(--muted); font-family: var(--sans); font-size: 10px; font-style: normal; letter-spacing: .16em; text-transform: uppercase; }
+
+        .birthday-page-root .memories-section { padding: 125px 7vw 135px; }
+        .birthday-page-root .section-heading { max-width: 800px; margin: 0 auto 46px; }
+        .birthday-page-root .section-heading .eyebrow { margin-bottom: 15px; }
+        .birthday-page-root .section-heading .section-title { font-size: clamp(44px, 7vw, 76px); }
+        .birthday-page-root .section-description { max-width: 500px; margin: 17px 0 0; color: var(--secondary); font-size: 13px; line-height: 1.8; }
+        .birthday-page-root .memory-grid {
+            width: min(100%, 1060px);
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 34px 22px;
+        }
+        .birthday-page-root .memory-card { min-width: 0; }
+        .birthday-page-root .photo-frame {
+            position: relative;
+            aspect-ratio: 1.38;
+            overflow: hidden;
+            border: 1px solid #242424;
+            background: #111;
+        }
+        .birthday-page-root .photo-frame::after {
+            position: absolute;
+            inset: 0;
+            border: 1px solid rgba(255,255,255,.04);
+            content: "";
+            pointer-events: none;
+        }
+        .birthday-page-root .photo-frame img {
+            width: 100%; height: 100%;
+            display: block;
+            object-fit: cover;
+            filter: grayscale(1) contrast(.92) brightness(.83);
+            transition: filter .5s ease, transform .8s cubic-bezier(.2,.7,.2,1);
+        }
+        .birthday-page-root .memory-card:hover .photo-frame img { filter: grayscale(1) contrast(1) brightness(1); transform: scale(1.035); }
+        .birthday-page-root .photo-placeholder {
+            position: absolute;
+            inset: 0;
+            display: none;
+            place-items: center;
+            background: linear-gradient(135deg, #111 0%, #181818 50%, #101010 100%);
+            color: #6e6e6e;
+            font-family: var(--serif);
+            font-size: 13px;
+            font-style: italic;
+            letter-spacing: .04em;
+        }
+        .birthday-page-root .photo-frame.is-empty .photo-placeholder { display: grid; }
+        .birthday-page-root .memory-caption { display: grid; grid-template-columns: 40px 1fr; gap: 5px; padding-top: 16px; }
+        .birthday-page-root .memory-number { padding-top: 3px; color: var(--muted); font-size: 9px; letter-spacing: .1em; }
+        .birthday-page-root .memory-caption h3 { margin: 0 0 6px; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
+        .birthday-page-root .memory-caption p { margin: 0; color: var(--secondary); font-family: var(--serif); font-size: 15px; font-style: italic; line-height: 1.6; }
+
+        .birthday-page-root .things-section { padding: 125px 7vw 140px; border-top: 1px solid var(--border); background: #080808; }
+        .birthday-page-root .things-inner { width: min(100%, 1000px); margin: 0 auto; }
+        .birthday-page-root .things-inner > .section-heading { margin-left: 0; }
+        .birthday-page-root .things-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--border); border-left: 1px solid var(--border); }
+        .birthday-page-root .thing-card {
+            min-height: 178px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 21px;
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            background: #0c0c0c;
+            transition: background .3s ease;
+        }
+        .birthday-page-root .thing-card:hover { background: #141414; }
+        .birthday-page-root .thing-card > span { color: var(--muted); font-size: 9px; letter-spacing: .14em; }
+        .birthday-page-root .thing-card p { max-width: 230px; margin: 35px 0 0; font-family: var(--serif); font-size: clamp(18px, 2vw, 23px); line-height: 1.4; }
+
+        .birthday-page-root .surprise-section {
+            min-height: 75svh;
+            display: grid;
+            place-items: center;
+            padding: 100px 24px;
+            border-top: 1px solid var(--border);
             text-align: center;
         }
-
-        .small-title {
-            font-size: 14px;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            color: #aaa;
-            margin-bottom: 18px;
+        .birthday-page-root .surprise-inner { width: min(100%, 660px); }
+        .birthday-page-root .surprise-inner .eyebrow { margin-bottom: 18px; }
+        .birthday-page-root .surprise-inner .section-title { font-size: clamp(40px, 6vw, 64px); }
+        .birthday-page-root .surprise-button {
+            min-height: 48px;
+            display: inline-flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 32px;
+            padding: 0 19px;
+            border: 1px solid #666;
+            background: transparent;
+            cursor: pointer;
+            font-size: 10px;
+            letter-spacing: .12em;
+            transition: border-color .25s ease, background .25s ease, color .25s ease, transform .25s ease;
         }
-
-        h1 {
-            font-size: clamp(36px, 8vw, 80px);
-            font-weight: 700;
-            letter-spacing: -3px;
-            line-height: 1;
-            margin-bottom: 15px;
-        }
-
-        .date {
-            font-size: clamp(16px, 3vw, 22px);
-            color: #aaa;
-            margin-bottom: 50px;
-        }
-
-        .countdown {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-        }
-
-        .box {
-            border: 1px solid #333;
-            background: #0a0a0a;
-            padding: 30px 15px;
-            border-radius: 14px;
-            transition: 0.3s ease;
-        }
-
-        .box:hover {
-            border-color: #fff;
-            transform: translateY(-4px);
-        }
-
-        .number {
+        .birthday-page-root .surprise-button:hover { transform: translateY(-2px); border-color: #fff; background: #fff; color: #000; }
+        .birthday-page-root .surprise-button span { font-size: 15px; }
+        .birthday-page-root .hidden-message { max-height: 0; overflow: hidden; opacity: 0; transform: translateY(12px); transition: max-height .8s ease, opacity .6s ease, transform .6s ease, margin .6s ease; }
+        .birthday-page-root .hidden-message.is-shown { max-height: 480px; margin-top: 43px; opacity: 1; transform: translateY(0); }
+        .birthday-page-root .hidden-message p { margin: 0 auto 23px; color: var(--secondary); font-size: 15px; line-height: 1.9; }
+        .birthday-page-root .hidden-message strong { color: #fff; font-family: var(--serif); font-size: clamp(24px, 4vw, 34px); font-weight: 400; }
+        .birthday-page-root .easter-egg {
             display: block;
-            font-size: clamp(35px, 7vw, 65px);
-            font-weight: 700;
-            line-height: 1;
-            margin-bottom: 10px;
+            margin: 31px auto 0;
+            padding: 8px;
+            border: 0;
+            background: transparent;
+            color: #616161;
+            cursor: pointer;
+            font-size: 9px;
+            letter-spacing: .08em;
+            transition: color .2s ease;
         }
+        .birthday-page-root .easter-egg:hover { color: #fff; }
 
-        .label {
-            color: #888;
-            font-size: 12px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
+        .birthday-page-root .final-section {
+            position: relative;
+            min-height: 100svh;
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+            padding: 100px 24px;
+            border-top: 1px solid var(--border);
+            text-align: center;
         }
+        .birthday-page-root .final-section::before {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: min(74vw, 680px);
+            aspect-ratio: 1;
+            border: 1px solid #151515;
+            border-radius: 50%;
+            content: "";
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        .birthday-page-root .final-content { position: relative; }
+        .birthday-page-root .final-title { margin: 0; font-size: clamp(52px, 10vw, 108px); line-height: 1; }
+        .birthday-page-root .final-title em { font-style: normal; }
+        .birthday-page-root .final-subtitle { margin: 23px 0 50px; color: var(--secondary); font-family: var(--serif); font-size: 17px; font-style: italic; }
+        .birthday-page-root .final-rule { width: 70px; height: 1px; margin: 0 auto 28px; background: #fff; transform-origin: center; animation: line-breathe 3.5s ease-in-out infinite; }
+        .birthday-page-root .final-signoff { margin: 0; color: #aaa; font-size: 10px; letter-spacing: .17em; text-transform: uppercase; }
+        .birthday-page-root .final-signoff strong { display: block; margin-top: 8px; color: #fff; font-family: var(--serif); font-size: 21px; font-weight: 400; letter-spacing: 0; text-transform: none; }
+        .birthday-page-root .back-top { display: inline-block; margin-top: 42px; color: var(--muted); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; transition: color .2s ease; }
+        .birthday-page-root .back-top:hover { color: #fff; }
+        .birthday-page-root .site-footer { min-height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 6vw; border-top: 1px solid var(--border); color: #747474; font-size: 8px; letter-spacing: .13em; }
 
-        .message {
+        /* ===== FIXED CUSTOM MODAL (replaces <dialog>) ===== */
+        .birthday-page-root .custom-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
             display: none;
-            margin-top: 35px;
-            font-size: clamp(25px, 5vw, 45px);
-            font-weight: 700;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
         }
-
-        .footer {
-            margin-top: 50px;
-            color: #555;
-            font-size: 12px;
-            letter-spacing: 1px;
+        .birthday-page-root .custom-modal.is-open {
+            display: flex;
         }
-
-        /* Tablet */
-        @media (max-width: 650px) {
-            .countdown {
-                gap: 10px;
-            }
-
-            .box {
-                padding: 22px 8px;
-            }
-
-            .date {
-                margin-bottom: 35px;
-            }
-
-            .footer {
-                margin-top: 35px;
-            }
+        .birthday-page-root .custom-modal-content {
+            width: min(100%, 420px);
+            padding: 34px;
+            border: 1px solid #383838;
+            background: #111;
+            color: #fff;
+            text-align: center;
+            animation: modalPop .3s cubic-bezier(.2,.7,.2,1);
         }
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(.9) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .birthday-page-root .secret-title { margin: 0 0 12px; font-family: var(--serif); font-size: 28px; font-weight: 400; }
+        .birthday-page-root .secret-copy { margin: 0; color: var(--secondary); font-size: 13px; line-height: 1.8; }
+        .birthday-page-root .secret-close { margin-top: 23px; padding: 9px 15px; border: 1px solid #555; background: transparent; cursor: pointer; font-size: 10px; }
+        .birthday-page-root .secret-close:hover { background: #fff; color: #000; }
 
-        /* Mobile */
-        @media (max-width: 430px) {
-            body {
-                padding: 15px;
-            }
+        .birthday-page-root .reveal { opacity: 0; transform: translateY(24px); transition: opacity .8s ease, transform .8s cubic-bezier(.2,.7,.2,1); }
+        .birthday-page-root .reveal.is-visible { opacity: 1; transform: translateY(0); }
+        .birthday-page-root .memory-card:nth-child(2), .birthday-page-root .thing-card:nth-child(2) { transition-delay: .07s; }
+        .birthday-page-root .memory-card:nth-child(3), .birthday-page-root .thing-card:nth-child(3) { transition-delay: .14s; }
+        .birthday-page-root .memory-card:nth-child(4), .birthday-page-root .thing-card:nth-child(4) { transition-delay: .21s; }
+        @keyframes nudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
+        @keyframes line-breathe { 0%, 100% { opacity: .45; transform: scaleX(.75); } 50% { opacity: 1; transform: scaleX(1.2); } }
 
-            h1 {
-                letter-spacing: -1px;
-            }
-
-            .small-title {
-                font-size: 11px;
-                letter-spacing: 3px;
-            }
-
-            .countdown {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
-            }
-
-            .box {
-                padding: 25px 10px;
-            }
-
-            .number {
-                font-size: 42px;
-            }
-
-            .label {
-                font-size: 10px;
-            }
-
-            .date {
-                margin-bottom: 30px;
-            }
+        @media (min-width: 1500px) {
+            .birthday-page-root .intro { padding-left: max(14vw, calc((100vw - 1080px) / 2)); }
+            .birthday-page-root .scroll-cue { left: max(14vw, calc((100vw - 1080px) / 2)); }
+        }
+        @media (max-width: 700px) {
+            .birthday-page-root .site-header { right: 22px; left: 22px; height: 62px; }
+            .birthday-page-root .wordmark { font-size: 9px; }
+            .birthday-page-root .header-detail { max-width: 130px; font-size: 7px; text-align: right; }
+            .birthday-page-root .intro { min-height: 92svh; padding: 105px 26px 90px; }
+            .birthday-page-root .intro::after { right: 26px; bottom: 13%; height: 70px; }
+            .birthday-page-root .intro .section-title { font-size: clamp(52px, 12vw, 78px); }
+            .birthday-page-root .intro-copy { max-width: 500px; margin-top: 22px; font-size: 14px; }
+            .birthday-page-root .scroll-cue { bottom: 26px; left: 26px; }
+            .birthday-page-root .letter-section { padding: 83px 18px; }
+            .birthday-page-root .letter-card { padding: 37px 25px; }
+            .birthday-page-root .letter-card::before { left: 25px; }
+            .birthday-page-root .letter-card .section-title { margin-bottom: 27px; font-size: clamp(44px, 10vw, 60px); }
+            .birthday-page-root .letter-copy { font-size: 13px; line-height: 1.9; }
+            .birthday-page-root .letter-copy p { margin-bottom: 17px; }
+            .birthday-page-root .letter-signoff { margin-top: 32px; font-size: 18px; }
+            .birthday-page-root .memories-section, .birthday-page-root .things-section { padding: 83px 20px 90px; }
+            .birthday-page-root .section-heading { margin-bottom: 31px; }
+            .birthday-page-root .section-heading .section-title { font-size: clamp(43px, 10vw, 60px); }
+            .birthday-page-root .memory-grid { gap: 27px 13px; }
+            .birthday-page-root .memory-caption { grid-template-columns: 28px 1fr; gap: 5px; padding-top: 12px; }
+            .birthday-page-root .memory-number { font-size: 8px; }
+            .birthday-page-root .memory-caption h3 { font-size: 9px; letter-spacing: .07em; }
+            .birthday-page-root .memory-caption p { font-size: 12px; }
+            .birthday-page-root .things-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .birthday-page-root .thing-card { min-height: 150px; padding: 15px; }
+            .birthday-page-root .thing-card p { font-size: 18px; }
+            .birthday-page-root .surprise-section { min-height: 68svh; padding: 78px 24px; }
+            .birthday-page-root .hidden-message p { font-size: 13px; }
+            .birthday-page-root .final-section { min-height: 90svh; }
+            .birthday-page-root .final-title { font-size: clamp(49px, 11vw, 75px); }
+            .birthday-page-root .site-footer { padding: 0 20px; font-size: 7px; }
+        }
+        @media (max-width: 420px) {
+            .birthday-page-root .opening h1 { font-size: clamp(47px, 13vw, 63px); }
+            .birthday-page-root .opening-kicker { font-size: 8px; }
+            .birthday-page-root .memory-grid { grid-template-columns: 1fr; gap: 27px; }
+            .birthday-page-root .photo-frame { aspect-ratio: 1.5; }
+            .birthday-page-root .memory-caption h3 { font-size: 10px; }
+            .birthday-page-root .memory-caption p { font-size: 14px; }
+            .birthday-page-root .thing-card { min-height: 139px; }
+            .birthday-page-root .site-footer { gap: 12px; font-size: 6px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .birthday-page-root *, .birthday-page-root *::before, .birthday-page-root *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+            .birthday-page-root .reveal { opacity: 1; transform: none; }
         }
     </style>
 </head>
-
 <body>
 
-    <main class="container">
-
-        <div class="small-title">
-            The countdown begins
-        </div>
-
+    <!-- ===== COUNTDOWN PAGE ===== -->
+    <main class="container" id="countdownApp">
+        <div class="small-title">The countdown begins</div>
         <h1>Birthday Countdown</h1>
+        <div class="date">October 14, 2026</div>
 
-        <div class="date">
-            October 14, 2026
-        </div>
-
-        <section class="countdown">
-
-            <div class="box">
-                <span class="number" id="days">00</span>
-                <span class="label">Days</span>
-            </div>
-
-            <div class="box">
-                <span class="number" id="hours">00</span>
-                <span class="label">Hours</span>
-            </div>
-
-            <div class="box">
-                <span class="number" id="minutes">00</span>
-                <span class="label">Minutes</span>
-            </div>
-
-            <div class="box">
-                <span class="number" id="seconds">00</span>
-                <span class="label">Seconds</span>
-            </div>
-
+        <section class="countdown" id="countdownSection">
+            <div class="box"><span class="number" id="days">00</span><span class="label">Days</span></div>
+            <div class="box"><span class="number" id="hours">00</span><span class="label">Hours</span></div>
+            <div class="box"><span class="number" id="minutes">00</span><span class="label">Minutes</span></div>
+            <div class="box"><span class="number" id="seconds">00</span><span class="label">Seconds</span></div>
         </section>
 
-        <div class="message" id="birthdayMessage">
-            Happy Birthday! 🎂
-        </div>
-
-        <div class="footer">
-            OCTOBER 14 • 2026
-        </div>
-
+        <div class="message" id="birthdayMessage">Happy Birthday! 🎂</div>
+        <div class="footer">OCTOBER 14 • 2026</div>
     </main>
 
+    <!-- ===== BIRTHDAY PAGE CONTAINER ===== -->
+    <div id="birthdayPageContainer" style="display: none; width: 100%;"></div>
+
     <script>
-        // Birthday date
-        const birthday = new Date("October 14, 2026 00:00:00").getTime();
+        (function() {
+            const BIRTHDAY_TIMESTAMP = new Date("October 14, 2026 00:00:00").getTime();
+            const countdownApp = document.getElementById("countdownApp");
+            const birthdayPageContainer = document.getElementById("birthdayPageContainer");
 
-        function updateCountdown() {
+            let countdownInterval = null;
+            let birthdayReached = false;
 
-            const now = new Date().getTime();
-            const difference = birthday - now;
+            function updateCountdown() {
+                const now = new Date().getTime();
+                const difference = BIRTHDAY_TIMESTAMP - now;
 
-            // Birthday has arrived
-            if (difference <= 0) {
+                if (difference <= 0) {
+                    if (!birthdayReached) {
+                        birthdayReached = true;
+                        clearInterval(countdownInterval);
+                        showBirthdayPage();
+                    }
+                    return;
+                }
 
-                document.getElementById("days").textContent = "00";
-                document.getElementById("hours").textContent = "00";
-                document.getElementById("minutes").textContent = "00";
-                document.getElementById("seconds").textContent = "00";
+                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+                const minutes = Math.floor((difference / (1000 * 60)) % 60);
+                const seconds = Math.floor((difference / 1000) % 60);
 
-                document.querySelector(".countdown").style.display = "none";
-                document.getElementById("birthdayMessage").style.display = "block";
-
-                return;
+                document.getElementById("days").textContent = String(days).padStart(2, "0");
+                document.getElementById("hours").textContent = String(hours).padStart(2, "0");
+                document.getElementById("minutes").textContent = String(minutes).padStart(2, "0");
+                document.getElementById("seconds").textContent = String(seconds).padStart(2, "0");
             }
 
-            // Calculate time
-            const days = Math.floor(
-                difference / (1000 * 60 * 60 * 24)
-            );
+            function showBirthdayPage() {
+                countdownApp.style.display = "none";
 
-            const hours = Math.floor(
-                (difference / (1000 * 60 * 60)) % 24
-            );
+                birthdayPageContainer.innerHTML = `
+                    <div class="birthday-page-root" id="birthdayRoot">
+                        <section class="opening" id="opening" aria-labelledby="opening-title">
+                            <div class="opening-inner">
+                                <p class="opening-kicker">happy birthdayyy, gwenn!!</p>
+                                <h1 id="opening-title">Happy Birthday,<br>Gwenn.</h1>
+                                <p class="opening-subtitle">may ginawa ako for u HAHAHAHA</p>
+                                <button class="open-button" id="open-button" type="button">Open <span aria-hidden="true">→</span></button>
+                                <p class="opening-note">sige na, open mo na HAHAHAHA</p>
+                            </div>
+                        </section>
 
-            const minutes = Math.floor(
-                (difference / (1000 * 60)) % 60
-            );
+                        <main class="site-content" id="top" inert>
+                            <header class="site-header">
+                                <a class="wordmark" href="#top">A NOTE FOR YOU</a>
+                                <span class="header-detail">A little birthday gift <span aria-hidden="true">·</span> From Nash</span>
+                            </header>
 
-            const seconds = Math.floor(
-                (difference / 1000) % 60
-            );
+                            <section class="intro" aria-labelledby="intro-title">
+                                <p class="eyebrow reveal">HAPPY BIRTHDAYYY</p>
+                                <h2 class="section-title reveal" id="intro-title">To You,</h2>
+                                <p class="intro-copy reveal">imbes na simpleng greet lang, gumawa na ako nito for u 😭 wala lang, gusto ko lang may something ka na pwede mong balikan. sana maging masaya araw mo today and sana ma-enjoy mo talaga birthday mo. <strong>im glad na naging friend kita</strong>, and i hope u know na na-appreciate kita kahit minsan puro kalokohan lang tayo HAHAHAHA.</p>
+                                <a class="scroll-cue" href="#letter">KEEP GOING <span aria-hidden="true">↓</span></a>
+                            </section>
 
-            // Display countdown
-            document.getElementById("days").textContent =
-                String(days).padStart(2, "0");
+                            <section class="letter-section" id="letter" aria-labelledby="letter-title">
+                                <article class="letter-card reveal">
+                                    <p class="eyebrow">A FEW THINGS I WANTED TO SAY</p>
+                                    <h2 class="section-title" id="letter-title">gwenn, happy birthday ulit!!</h2>
+                                    <div class="letter-copy">
+                                        <p>i just wanna say na im glad na naging friend kita. thank you sa mga random convos natin and sa mga kalokohan na minsan ewan ko ba kung bakit natatawa tayo 😭 pero ayun, kahit simpleng moments lang, naa-appreciate ko rin yun.</p>
+                                        <p>minsan hindi naman kailangan na may malaking ganap para maging memorable yung araw HAHAHAHA. minsan usap lang, tawanan, or kung ano anong pinag uusapan natin, okay na. tapos minsan pag binalikan mo, matatawa ka na lang kasi ano ba talaga yung nakakatawa dun 😭 HAHAHAHA.</p>
+                                        <p>thank you rin kasi naging part ka ng mga moments na yun. <strong>i really appreciate our friendship</strong>, kahit minsan puro asaran at tawanan lang tayo HAHAHAHA. sana marami pa tayong memories na magawa and more moments na mapapatanong na lang tayo kung bakit ba tayo natatawa 😭.</p>
+                                        <p>for this year, i wish u more happiness, good health, success, and blessings. sana mas marami pang good things na dumating sayo and sana matupad mo yung mga gusto mong ma-achieve.</p>
+                                        <p>kapag may mga araw na hindi okay, sana malagpasan mo rin yun and always remember na may mga taong nag care sayo. deserve mo rin ng peaceful and happy days, gwenn.</p>
+                                        <p>ayun lang naman HAHAHAHA. keep being yourself lang, gwenn, and sana wag mong kalimutan na appreciated ka namin. im happy na friend kita and sana mas marami pa tayong tawanan and memories.</p>
+                                        <p>enjoy your day, kain ka marami HAHAHAHA. happy birthday ulit!! 🤍</p>
+                                    </div>
+                                    <p class="letter-signoff">enjoy ur day, gwenn!!<span>— Nash</span></p>
+                                </article>
+                            </section>
 
-            document.getElementById("hours").textContent =
-                String(hours).padStart(2, "0");
+                            <section class="memories-section" id="memories" aria-labelledby="memories-title">
+                                <div class="section-heading reveal">
+                                    <p class="eyebrow">A FEW MOMENTS WE KEEP</p>
+                                    <h2 class="section-title" id="memories-title">Little Memories</h2>
+                                    <p class="section-description">Some days don't look like much in the moment. Then later, somehow, they're the ones you remember.</p>
+                                </div>
+                                <div class="memory-grid">
+                                    <figure class="memory-card reveal">
+                                        <div class="photo-frame">
+                                            <img src="../images/gwenn1.jpg" alt="Random Moments" loading="lazy">
+                                            <span class="photo-placeholder" aria-hidden="true">ewan ko basta memorable HAHAHAHA.</span>
+                                        </div>
+                                        <figcaption class="memory-caption"><span class="memory-number">01</span><div><h3>Random Moments</h3><p>ewan ko basta memorable HAHAHAHA.</p></div></figcaption>
+                                    </figure>
+                                    <figure class="memory-card reveal">
+                                        <div class="photo-frame">
+                                            <img src="../images/gwenn2.jpg" alt="The Funny Ones" loading="lazy">
+                                            <span class="photo-placeholder" aria-hidden="true">yung nakakatawa di ko na rin alam bakit tayo tumatawa HAHAHAHA.</span>
+                                        </div>
+                                        <figcaption class="memory-caption"><span class="memory-number">02</span><div><h3>The Funny Ones</h3><p>yung nakakatawa di ko na rin alam bakit tayo tumatawa HAHAHAHA.</p></div></figcaption>
+                                    </figure>
+                                    <figure class="memory-card reveal">
+                                        <div class="photo-frame">
+                                            <img src="../images/gwenn3.jpg" alt="Another Random Day" loading="lazy">
+                                            <span class="photo-placeholder" aria-hidden="true">normal na araw lang pero may memories pa rin.</span>
+                                        </div>
+                                        <figcaption class="memory-caption"><span class="memory-number">03</span><div><h3>Another Random Day</h3><p>normal na araw lang pero may memories pa rin.</p></div></figcaption>
+                                    </figure>
+                                    <figure class="memory-card reveal">
+                                        <div class="photo-frame">
+                                            <img src="../images/gwenn4.jpg" alt="One For The Camera" loading="lazy">
+                                            <span class="photo-placeholder" aria-hidden="true">picture muna syempre dapat may remembrance din HAHAHAHA.</span>
+                                        </div>
+                                        <figcaption class="memory-caption"><span class="memory-number">04</span><div><h3>One For The Camera</h3><p>picture muna syempre dapat may remembrance din HAHAHAHA.</p></div></figcaption>
+                                    </figure>
+                                </div>
+                            </section>
 
-            document.getElementById("minutes").textContent =
-                String(minutes).padStart(2, "0");
+                            <section class="things-section" aria-labelledby="things-title">
+                                <div class="things-inner">
+                                    <div class="section-heading reveal">
+                                        <p class="eyebrow">JUST IN CASE YOU FORGET</p>
+                                        <h2 class="section-title" id="things-title">Things I Want<br>You To Know</h2>
+                                    </div>
+                                    <div class="things-grid">
+                                        <article class="thing-card reveal"><span>01</span><p>I'm really glad I met you.</p></article>
+                                        <article class="thing-card reveal"><span>02</span><p>thank you sa mga random usapan natin HAHAHAHA.</p></article>
+                                        <article class="thing-card reveal"><span>03</span><p>thank you sa tawanan and memories.</p></article>
+                                        <article class="thing-card reveal"><span>04</span><p>sana alam mong naa-appreciate ka namin..</p></article>
+                                        <article class="thing-card reveal"><span>05</span><p>stay sa pagiging makulit lang HAHAHAHA.</p></article>
+                                        <article class="thing-card reveal"><span>06</span><p>good luck sa lahat ng plans and goals mo, rooting for u!!</p></article>
+                                    </div>
+                                </div>
+                            </section>
 
-            document.getElementById("seconds").textContent =
-                String(seconds).padStart(2, "0");
-        }
+                            <section class="surprise-section" aria-labelledby="surprise-title">
+                                <div class="surprise-inner reveal">
+                                    <p class="eyebrow">WAIT LANG HAHAHAHA</p>
+                                    <h2 class="section-title" id="surprise-title">may isa pa pala.</h2>
+                                    <button class="surprise-button" id="surprise-button" type="button" aria-expanded="false" aria-controls="hidden-message">click mo nga HAHAHAHA <span aria-hidden="true">→</span></button>
+                                    <div class="hidden-message" id="hidden-message" hidden>
+                                        <p>i hope this year gives u more reasons to be happy and more memories na worth balikan. and sana kahit anong mangyari, wag mong isipin na mag isa ka lang kasi may mga tao naman na nandito for u.</p>
+                                        <strong>happy birthdayyy, gwenn!! 🤍</strong>
+                                    </div>
+                                    <button class="easter-egg" id="easter-egg" type="button">psst. over here.</button>
+                                </div>
+                            </section>
 
-        // Update immediately
-        updateCountdown();
+                            <section class="final-section" aria-labelledby="final-title">
+                                <div class="final-content reveal">
+                                    <p class="eyebrow">AYUN LANG HAHAHAHA</p>
+                                    <h2 class="final-title" id="final-title">happy birthday,<br><em>gwenn.</em></h2>
+                                    <p class="final-subtitle">more memories and kalokohan pa sana HAHAHAHA.</p>
+                                    <div class="final-rule" aria-hidden="true"></div>
+                                    <p class="final-signoff">From,<strong>Nash</strong></p>
+                                    <a class="back-top" href="#top">Back to the beginning ↑</a>
+                                </div>
+                            </section>
+                            <footer class="site-footer"><span>MADE WITH FRIENDSHIP</span><span>FOR GWENN · ALWAYS CHEERING YOU ON</span></footer>
+                        </main>
 
-        // Update every second
-        setInterval(updateCountdown, 1000);
+                        <!-- FIXED: Custom modal centered in viewport -->
+                        <div class="custom-modal" id="custom-modal" role="dialog" aria-modal="true" aria-labelledby="secret-title">
+                            <div class="custom-modal-content">
+                                <h2 class="secret-title" id="secret-title">AY WOW NAKITA MO HAHAHAHA 👀</h2>
+                                <p class="secret-copy">sige na, tama na kakahanap HAHAHAHA. enjoy ur birthday, gwenn!! 🤍</p>
+                                <button class="secret-close" id="secret-close" type="button">Okay, okay</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                birthdayPageContainer.style.display = "block";
+                document.body.classList.add("locked");
+
+                const root = document.getElementById("birthdayRoot");
+                const openButton = root.querySelector("#open-button");
+                const siteContent = root.querySelector(".site-content");
+                const surpriseButton = root.querySelector("#surprise-button");
+                const hiddenMessage = root.querySelector("#hidden-message");
+                const customModal = root.querySelector("#custom-modal");
+                const secretClose = root.querySelector("#secret-close");
+
+                // Open button
+                openButton.addEventListener("click", () => {
+                    document.body.classList.remove("locked");
+                    root.classList.add("entered");
+                    siteContent.removeAttribute("inert");
+
+                    setTimeout(() => {
+                        const introTitle = root.querySelector("#intro-title");
+                        if (introTitle) {
+                            introTitle.focus({ preventScroll: true });
+                            introTitle.scrollIntoView({ behavior: "smooth", block: "center" });
+                        }
+                    }, 220);
+                });
+
+                // Surprise toggle
+                surpriseButton.addEventListener("click", () => {
+                    const willShow = hiddenMessage.hidden;
+                    hiddenMessage.hidden = !willShow;
+                    surpriseButton.setAttribute("aria-expanded", String(willShow));
+                    surpriseButton.innerHTML = willShow
+                        ? 'click mo nga HAHAHAHA <span aria-hidden="true">−</span>'
+                        : 'click mo nga HAHAHAHA <span aria-hidden="true">→</span>';
+                    if (willShow) {
+                        requestAnimationFrame(() => hiddenMessage.classList.add("is-shown"));
+                    } else {
+                        hiddenMessage.classList.remove("is-shown");
+                    }
+                });
+
+                // Easter egg → open custom modal
+                root.querySelector("#easter-egg").addEventListener("click", () => {
+                    customModal.classList.add("is-open");
+                });
+
+                // Close modal on button click
+                secretClose.addEventListener("click", () => {
+                    customModal.classList.remove("is-open");
+                });
+
+                // Close modal on backdrop click
+                customModal.addEventListener("click", (e) => {
+                    if (e.target === customModal) {
+                        customModal.classList.remove("is-open");
+                    }
+                });
+
+                // Close modal on Escape key
+                document.addEventListener("keydown", (e) => {
+                    if (e.key === "Escape" && customModal.classList.contains("is-open")) {
+                        customModal.classList.remove("is-open");
+                    }
+                });
+
+                // Image fallback
+                root.querySelectorAll(".photo-frame img").forEach((image) => {
+                    image.addEventListener("error", () => {
+                        image.closest(".photo-frame").classList.add("is-empty");
+                        image.remove();
+                    }, { once: true });
+                });
+
+                // Reveal observer
+                if ("IntersectionObserver" in window) {
+                    const revealObserver = new IntersectionObserver((entries, observer) => {
+                        entries.forEach((entry) => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add("is-visible");
+                                observer.unobserve(entry.target);
+                            }
+                        });
+                    }, { threshold: 0.12 });
+                    root.querySelectorAll(".reveal").forEach((el) => revealObserver.observe(el));
+                } else {
+                    root.querySelectorAll(".reveal").forEach((el) => el.classList.add("is-visible"));
+                }
+            }
+
+            updateCountdown();
+            countdownInterval = setInterval(updateCountdown, 1000);
+        })();
     </script>
-
 </body>
 </html>
